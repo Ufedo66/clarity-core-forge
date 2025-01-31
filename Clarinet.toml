@@ -4,6 +4,10 @@ authors = []
 description = ""
 telemetry = false
 requirements = []
+[contracts.app-template]
+path = "contracts/app-template.clar"
+depends_on = []
+
 [contracts.core-forge]
 path = "contracts/core-forge.clar"
 depends_on = []
