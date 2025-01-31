@@ -6,6 +6,7 @@
 (define-constant err-owner-only (err u100))
 (define-constant err-invalid-app (err u101))
 (define-constant err-unauthorized (err u102))
+(define-constant err-invalid-status (err u103))
 
 ;; Data Maps
 (define-map apps
@@ -23,7 +24,7 @@
   { can-manage: bool }
 )
 
-;; Data Variables
+;; Data Variables 
 (define-data-var next-app-id uint u1)
 
 ;; Public Functions
@@ -44,6 +45,16 @@
     (ok true))
 )
 
+(define-public (update-app-status (app-id uint) (new-status (string-ascii 16)))
+  (let ((app (unwrap! (get-app app-id) err-invalid-app)))
+    (asserts! (is-authorized app-id tx-sender) err-unauthorized)
+    (asserts! (is-valid-status new-status) err-invalid-status)
+    (try! (map-set apps
+      { app-id: app-id }
+      (merge app { status: new-status })))
+    (ok true))
+)
+
 ;; Private Functions
 (define-private (create-new-app (id uint) (name (string-ascii 64)) (version (string-ascii 16)) (owner principal))
   (map-set apps
@@ -56,6 +67,14 @@
     }
   )
   (ok true)
+)
+
+(define-private (is-valid-status (status (string-ascii 16)))
+  (or
+    (is-eq status "active")
+    (is-eq status "inactive")
+    (is-eq status "deprecated")
+  )
 )
 
 ;; Read Only Functions

@@ -54,3 +54,30 @@ Clarinet.test({
     block.receipts[0].result.expectErr().expectUint(102);
   }
 });
+
+Clarinet.test({
+  name: "Ensure can update app status with valid status",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    
+    let block = chain.mineBlock([
+      Tx.contractCall(
+        "core-forge", 
+        "update-app-status",
+        [types.uint(1), types.ascii("inactive")],
+        deployer.address
+      )
+    ]);
+
+    block.receipts[0].result.expectOk().expectBool(true);
+    
+    let app = chain.callReadOnlyFn(
+      "core-forge",
+      "get-app",
+      [types.uint(1)],
+      deployer.address
+    );
+    
+    app.result.expectSome().expectTuple()["status"].expectAscii("inactive");
+  }
+});
